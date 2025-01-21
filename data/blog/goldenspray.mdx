@@ -1,0 +1,117 @@
+---
+title: GoldenSpray Lab Walkthrough
+date: 2025-01-21
+tags: ['cyberdefenders', 'walkthroughs', 'splunk', 'threat hunting']
+draft: false
+summary: Step-by-step walkthrough of CyberDefenders GoldenSpray Lab using Splunk SIEM
+images: ['']
+layout: PostSimple
+---
+
+![background](/static/images/GoldenSpray/background.png)
+
+<TOCInline toc={props.toc} exclude="Overview" toHeading={4} />
+
+# Lab Scenario
+
+As a cybersecurity analyst at SecureTech Industries, you've been alerted to unusual login attempts and unauthorized access within the company's network. Initial indicators suggest a potential brute-force attack on user accounts. Your mission is to analyze the provided log data to trace the attack's progression, determine the scope of the breach, and attacker's TTPs.
+
+# CTF Walkthrough
+
+### Q1 What's the attacker IP?
+
+```
+index=goldenspray AND event.action=logon AND event.outcome=failure
+| top limit=20 "winlog.event_data.IpAddress"
+```
+
+- With the most failed login attempts we can clearly see that `77.91.X.X` is a public IP address. More than 16 failed login attempts were from this IP address alone. Another things to remember is type of the IP address used. Let's dive a bit deeper and check the timing for each failed login. ![Q1](/static/images/GoldenSpray/Q1.png)
+
+```
+index=goldenspray AND event.action=logon AND event.outcome=failure "winlog.event_data.IpAddress"="77.91.78.115"
+| table _time, event.outcome, winlog.event_data.IPAddress
+```
+
+- We know that `192.168.X.X` is a Class C Private IP address and `127.0.0.1` is a loopback address. Both of them are being used by the server and are publicly non routable. Coming to the public IP address `77.91.78.115` We can clearly see that each failed login attempt was within a 30 minute timeframe. This is a sign of brute force attack ![Q1-2](/static/images/GoldenSpray/Q1-2.png)
+
+### Q2 What country is the attack originating from?
+
+- You can make use of VirusTotal to find out the Country from which this IP address originated from. Hover over the flag and you'll get your answer ![Q2](/static/images/GoldenSpray/Q2.png)
+
+### Q3 What's the compromised account username used for initial access?
+
+```
+index=goldenspray AND winlog.event_data.IpAddress="77.91.78.115" AND "event.action"=Logon
+| table _time, event.outcome, winlog.event_data.TargetUserName
+```
+
+- After using the query mentioned above we see `mwilliams` account with 4 successful logons after many failed login attempts. Click `View events` for more detailed analysis of this event. Under `winlog` you'll find account username used for initial access`SECURETECH\mwilliams`
+  ![Q3](/static/images/GoldenSpray/Q3.png)
+
+### Q4 What's the name of the malicious file utilized by the attacker for persistence on ST-WIN02?
+
+```
+index=goldenspray AND sourcetype="ST-WIN02" "event.code"=11 "winlog.event_data.User"="SECURETECH\\mwilliams"
+| table _time, winlog.event_data.TargetFilename
+| sort by _time
+```
+
+- Here the first executable file which is `OfficeUpdater.exe` was targeted by the attacker for persistence ![Q4](/static/images/GoldenSpray/Q4.png)
+
+### Q5 What's the full path used by the attacker for storing his tools?
+
+- Using the query from question number 4 we can find out the directory used by the attacker for storing power shell scripts and tools like `mimikatz` for malicious purposes ![Q5](/static/images/GoldenSpray/Q5.png)
+
+### Q6 What's the process ID of the tool responsible for dumping credentials on ST-WIN02?
+
+```
+index=goldenspray AND sourcetype="ST-WIN02" "winlog.event_id"=1 "winlog.event_data.OriginalFileName"="mimikatz.exe"
+| table by _time winlog.event_data.CommandLine, winlog.event_data.ProcessId
+| sort by _time
+```
+
+- we can see `mimikatz.exe` being executed (event_id = 1). Mimikatz is being used in this scenario for credential dumping. In the current analysis, it has a process ID of `3708` ![Q6](/static/images/GoldenSpray/Q6.png)
+
+### Q7 What's the second account username the attacker compromised and used for lateral movement?
+
+- Use the query mentioned in question 3. On scrolling, the last user on the list which is `jsmith`, was compromised right after `mwilliams`. So, we can use the 'domain name\name' as our flag which is `SECURETECH\jsmith` ![Q7](/static/images/GoldenSpray/Q7.png)
+
+### Q8 Can you provide the scheduled task created by the attacker for persistence on the domain controller?
+
+```
+index=goldenspray event.code=1 AND "*scheduled"
+```
+
+- Using this query we'll be left with a single event. Analyze the `winlog` section of this event and you'll come across an malicious executable being executed as a power shell command to run on a scheduled basis. The entire command with rulename is mentioned after`event_data.CommandLine`
+
+**For a better view check the query below**
+
+```
+index=goldenspray event.code=1 AND "*scheduled"
+| table _time, winlog.event_data.CommandLine, winlog.event_data.RuleName
+```
+
+- This query will create a Table which will help us clear out noise and will leave us with scheduled task name, followed by an hourly scheduled command and rulename. In this question, `FilesCheck` should be our answer ![Q8](/static/images/GoldenSpray/Q8.png)
+
+### Q9 What's the encryption type used in the environment Kerberos tickets?
+
+```
+index=goldenspray
+| top limit=20 "winlog.event_data.TicketEncryptionType"
+```
+
+- You'll be left with 2 results - **0xffffff** indicates kerberos authentication failure - **0x17** tells us the encryption type used here
+  ![Q9](/static/images/GoldenSpray/Q9.png)
+
+- We can see in MS Kerberos table for event id 4769 that hex code `0x17` indicates `RC4-HMAC` which should be our flag ![Q9-2](/static/images/GoldenSpray/Q9-2.png)
+
+### Q10 Can you provide the full path of the output file in preparation for data exfiltration?
+
+```
+index=goldenspray  "winlog.event_data.User"="SECURETECH\\jsmith" | table _time, winlog.event_data.TargetFilename
+| sort by _time
+| reverse
+```
+
+- Using this query we can find the full path of the file. As per results from this query the file that was created for data exfiltration was `Archive_8673812.zip` and it's exact path, which should be out flag is `C:\Users\Public\Documents\Archive_8673812.zip` ![Q10](/static/images/GoldenSpray/Q10.png)
+  > **If you've made this far, thank you for reading!**
