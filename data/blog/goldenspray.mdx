@@ -100,15 +100,19 @@ index=goldenspray
 | top limit=20 "winlog.event_data.TicketEncryptionType"
 ```
 
-- You'll be left with 2 results - **0xffffff** indicates kerberos authentication failure - **0x17** tells us the encryption type used here
-  ![Q9](/static/images/GoldenSpray/Q9.png)
+- You'll be left with 2 results
+
+  - **0xffffff** indicates kerberos authentication failure
+  - **0x17** tells us the encryption type used here
+    ![Q9](/static/images/GoldenSpray/Q9.png)
 
 - We can see in MS Kerberos table for event id 4769 that hex code `0x17` indicates `RC4-HMAC` which should be our flag ![Q9-2](/static/images/GoldenSpray/Q9-2.png)
 
 ### Q10 Can you provide the full path of the output file in preparation for data exfiltration?
 
 ```
-index=goldenspray  "winlog.event_data.User"="SECURETECH\\jsmith" | table _time, winlog.event_data.TargetFilename
+index=goldenspray  "winlog.event_data.User"="SECURETECH\\jsmith"
+| table _time, winlog.event_data.TargetFilename
 | sort by _time
 | reverse
 ```
