@@ -1,9 +1,7 @@
 {
-  "domain": 1,
-  "telegram": 1,
-  "security": 1,
-  "windows": 1,
-  "edge": 1,
+  "cyberdefenders": 5,
+  "walkthroughs": 5,
+  "threat-intel": 1,
   "cyberdefenders": 5,
   "walkthroughs": 5,
   "endpoint-forensics": 1,
@@ -11,7 +9,7 @@
   "evtxcmd": 1,
   "wireshark": 2,
   "network-traffic-analysis": 2,
-  "threat-intel": 1,
   "splunk": 1,
-  "threat-hunting": 1
+  "threat-hunting": 1,
+  "domain": 1
 }
