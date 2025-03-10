@@ -8,7 +8,7 @@ images: ['']
 layout: PostSimple
 ---
 
-This is a **medium** level **endpoint forensics** lab by **CyberDefenders**. You can complete your analysis using either **Eric Zimmerman Tools** and **MemProcFS**. Start by reading `Before Getting Started` section for more details on how to use these tools.
+This is a **medium** level **endpoint forensics** lab by **CyberDefenders**. You can complete your analysis using **Eric Zimmerman Tools**. Start by reading `Before Getting Started` section for more details on how to use these tools.
 
 ![Andromeda](/static/images/Andromeda/background.png)
 
@@ -54,11 +54,11 @@ From here on you can find answers/flags for each question asked in this lab. I s
 
 ### Q3 Identifying the full path of the executable provides crucial evidence for tracing the attack's origin and understanding how the malware was deployed. What is the full path of the executable that was run after the PowerShell commands disabled Windows Defender protections?
 
-- Next in the event ID field I search for events with ID of `403` which will tell us what Powershell commands were executed. Sort them by `Time created` field again and check the last command under `Payload Data`. We'll end up with our flag  `E:\hidden\Trusted Installer.exe` ![Q3](/static/images/Andromeda/Q3.png)
+- Next in the event ID field I search for events with ID of `403` which will tell us what Powershell commands were executed. Sort them by `Time created` field again and check the last command under `Payload Data`. We'll end up with our flag `E:\hidden\Trusted Installer.exe` ![Q3](/static/images/Andromeda/Q3.png)
 
 ### Q4 Identifying the bot malware’s C&C infrastructure is key for detecting IOCs. According to threat intelligence reports, what URL does the bot use to download its C&C file?
 
-- Start finding C2 server with Virustotal by using the MD5 hash value of exe binary  available in field `Payload Data3` as `BC76BD7B332AA8F6AEDBB8E11B7BA9B6` ![Q4](/static/images/Andromeda/Q4.png)
+- Start finding C2 server with Virustotal by using the MD5 hash value of exe binary available in field `Payload Data3` as `BC76BD7B332AA8F6AEDBB8E11B7BA9B6` ![Q4](/static/images/Andromeda/Q4.png)
 - in the behavior tab analyze the C2 section and you'll find the link which was used to download files for C2 `http://anam0rph.su/in.php` ![Q4-1](/static/images/Andromeda/Q4-1.png)
 
 ### Q5 Understanding the IOCs for files dropped by malware is essential for gaining insights into the various stages of the malware and its execution flow. What is the MD5 hash of the dropped .exe file?
@@ -68,10 +68,10 @@ From here on you can find answers/flags for each question asked in this lab. I s
 
 ### Q6 Having the full file paths allows for a more complete cleanup, ensuring that all malicious components are identified and removed from the impacted locations. What is the full path of the first DLL dropped by the malware sample?
 
--  After using the same search from Q5. We can see over 5 `FileCreate` event ![Q6](/static/images/Andromeda/Q6.png)
+- After using the same search from Q5. We can see over 5 `FileCreate` event ![Q6](/static/images/Andromeda/Q6.png)
 - On analyzing the `TargetFileame` field under `Playload Data4` we can see the DLL that was created or dropped by the malware is in `C:\Users\Tomy\AppData\Local\Temp\Gozekeneka.dll` ![Q6-1](/static/images/Andromeda/Q6-1.png)
 
-### Q7  Connecting malware to APT groups is crucial for uncovering an attack's broader strategy, motivations, and long-term goals. Based on IOCs and threat intelligence reports, which APT group reactivated this malware for use in its campaigns?
+### Q7 Connecting malware to APT groups is crucial for uncovering an attack's broader strategy, motivations, and long-term goals. Based on IOCs and threat intelligence reports, which APT group reactivated this malware for use in its campaigns?
 
 - I started searching for andromeda malware and anything linked to it's origin. I came across the article by [computerweekly](https://www.computerweekly.com/news/252528934/Russias-Turla-falls-back-on-old-malware-C2-domains-to-avoid-detection) and it turns out that this malware is used by a Russian APT group which goes by name `Turla` ![Q7](/static/images/Andromeda/Q7.png)
 
