@@ -1,0 +1,83 @@
+---
+title: Solar Disruption Lab Walkthrough
+date: '2025-03-15'
+tags: ['cyberdefenders', 'walkthroughs', 'network-traffic-analysis']
+draft: false
+summary: Step-by-step walkthrough of CyberDefenders Solar Disruption Lab
+images: ['']
+---
+
+This is a **hard** level **network forensic** lab by **CyberDefenders**. You can complete your analysis using either **Wireshark** or **Zui** by Brim if you prefer Zeek. Start by reading the scenario in the above image and then proceed to capture flags.
+
+![background](/static/images/SolarDisruption/background.png)
+
+### Q1 In the provided packet capture, several protocols are present, but one stands out for its popularity in Industrial Control Systems and Programmable Logic Controllers (PLCs). It is used to transmit data between devices like PLCs and sensors, allowing real-time monitoring and process control. What is the name of this protocol?
+
+- Query used -> `Statistics -> Protocol Hierarchy`
+- Start looking for protocol that could be used for communication with ICSs. Below in the attached screenshot `modbus` clearly stands out the most! ![Q1](/static/images/SolarDisruption/Q1.png)
+
+### Q2 Some analysis tools offer a histogram view of the packet capture, which visualizes network activity over time and helps analysts identify patterns, trends, or anomalies such as traffic spikes. Determine the duration of the traffic spike in the packet capture, rounding the result to the nearest second, and provide your answer in seconds.
+
+- We start from the bottom and then go to last highest peak there was. Then we'll subtract time from the (last highest peak - start of that peak traffic). We can see start time after 454 seconds ![Q2](/static/images/SolarDisruption/Q2.png)
+- And the last peak before it starts to dip is at 462.99 (Almost 463) ![Q2-1](/static/images/SolarDisruption/Q2-1.png)
+- In the question it's mentioned that we need to round off the result to nearest second so our answer would be `463-454` which would give us a total of `9` seconds
+
+### Q3 Traffic spikes are often linked to scanning activities by adversaries, which become evident when a single host IP generates a large number of requests within a short period. What is the IP address responsible for the traffic spike?
+
+- Again, this question is related to traffic so we need to go to `Statistics -> I/O Graph` ![Q3](/static/images/SolarDisruption/Q3.png)
+- Click on the highest peak point present there in the Graph. You'll be left with a IP (`192.168.228.203`) which is generating tons of traffic at that time. ![Q3-1](/static/images/SolarDisruption/Q3-1.png)
+
+### Q4 After identifying the attacker's IP address, the next step is to determine which network hosts the attacker interacted with, a process known as host discovery. This involves analyzing the traffic to see how many devices or systems the attacker communicated with on the network. Based on the packet capture analysis, how many hosts did the attacker discover?
+
+- Query used -> `ip.src == 192.168.228.203` ![Q4](/static/images/SolarDisruption/Q4.png)
+- Move to `Statistics -> Conversations` and start analyzing each IP that the attacker might have discovered in their host discovery process for carrying out lateral movement.
+- You'll see in the start some public IP address and in the end followed by class C Private IP address. We know that most of the times ICSs, PLCs systems are usually air gapped and completely isolated for increased protection since they are under attacker's radar because of their vulnerabilities as they are out of recent security patches.
+- If you start counting the total Host IP addresses in the network address range 192.168.228.0/24. A total of 254 hosts could be possible but in our scenario only 8 IP addresses are being utilized out of which one belongs to attacker which we won't count and the remaining 7 goes to ICSs so `7` should be our flag. ![Q4-1](/static/images/SolarDisruption/Q4-1.png)
+
+> **Note:** 192.168.228.254 is also a valid host address. it can be used for multicast since it falls in Class D. Don't confuse it with broadcast address which ends with 255 at last.
+
+### Q5 After completing host discovery, adversaries typically conduct a port scan to identify potential vulnerabilities and determine their attack surface. How many ports did the attacker scan on each of the discovered hosts?
+
+- Query used -> `ip.src==192.168.228.203 and ip.dst == 192.168.228.1`
+- We already know the attacker's IP from the previous question. Using the query above we can see how many ports did the attacker checked on each host. We can see over 1000 tcp frames each containing information about each port that was scanned. For the remaining hosts it should have the same value of `1000` different ports. However, when i checked the open ports for other hosts, the attacker had performed port scan couple of times so you might see more frames in those cases, to find unique ports you can make use of statistics option in that case. ![Q5](/static/images/SolarDisruption/Q5.png)
+
+### Q6 Now that we have confirmed the attacker's IP and intentions, let's begin analyzing their actions. Which HTTP host did the attacker first interact with after completing their enumeration?
+
+- Query used -> `((ip.src==192.168.228.203) and (ip.dst) == 192.168.228.0/24)) and http)` would be the query I'd use to find the correct host that the attacker interacted with using http protocol.
+- I've pointed the source IP address using `ip.src` to the attacker's IP address. For the destination address, I don't know with which host did the attacker communicated **first** and that's what this question is asking about.
+- From Q4 I know each host present in the CIDR **/24** subnet range of network address 192.168.228.0. Setting `ip.dest` equal to `192.168.228.0/24` will point to all the 254 hosts present with network address of `192.168.228.0`
+- We can see the first host the attacker interacted with was `192.168.228.138` and that should be our flag for this question. The question isn't complex if you know subnetting. There's probably another way to find this answer, maybe by checking http communication statistics. ![Q6](/static/images/SolarDisruption/Q6.png)
+
+### Q7 The first host the attacker interacted with is a PLC (Programmable Logic Controller) device. To understand the attack better, it's important to identify the specific PLC runtime being used on this host, as this could give insights into the attack methods and vulnerabilities. What is the name of the PLC runtime used by this host?
+
+- Using the previous query, I start analyzing each frame one-by-one. We can see the requested uniform resource identifier (URI) being `/static/logo-openplc.png`. It looks like this is a logo of `openplc` project ![Q7](/static/images/SolarDisruption/Q7.png)
+- By searching on google for `openplc` we can find out if our finding is correct. ![Q7-1](/static/images/SolarDisruption/Q7-1.png)
+
+### Q8 The attacker appears to have successfully logged into the PLC's configuration webserver. What credentials did they use to gain access?
+
+- `(ip.src==192.168.228.203) and (ip.dst == 192.168.228.0/24)) and http.request.method = = POST` using this query we can check each post request made by the attacker. We can see the very first frame include clear text traffic. On performing further analysis we can see username and password being entered as `openplc` ![Q8](/static/images/SolarDisruption/Q8.png)
+
+### Q9 According to the incident report, the credentials for the OpenPLC configuration webserver were changed by the attacker. Can you identify the new password that the attacker set?
+
+- Using the query mentioned in the previous answer, we can see second http request pointing to the `/edit-user` page. Start by following stream of http traffic which belongs in the top most layer of OSI Model (Layer 7 - Application Layer) ![Q9](/static/images/SolarDisruption/Q9.png)
+- After analyzing each line of `http stream`, we can see new password set to `d1srupt10n` ![Q9-1](/static/images/SolarDisruption/Q9-1.png)
+
+### Q10 The PLC's configuration webserver enables engineers to configure and monitor various parameters of the PLC device. This access can also allow an attacker to identify the I/O points or the registers/coils numbers and their mappings. How many I/O points were in use on the PLC?
+
+- This question is related to `configuration webserver` of PLC. Its clear that we need access to html webpage files. Start by creating a folder named `Artifcats` anywhere on your machine. I'm placing this new folder on my desktop. ![Q10](/static/images/SolarDisruption/Q10.png)
+- Select `File` option from the top right and move to `Export Objects` -> `HTTP` ![Q10-1](/static/images/SolarDisruption/Q10-1.png)
+- Export all the http objects present in the pcap to the folder we previously created. ![Q10-2](/static/images/SolarDisruption/Q10-2.png)
+- I started by analyzing filename of each file. I was able to find a file named dashboard. Let's take a look at it by double clicking on it ![Q10-3](/static/images/SolarDisruption/Q10-3.png)
+- In the monitoring section we can clearly see our flag. A total of `4` I/O points. ![Q10-4](/static/images/SolarDisruption/Q10-4.png)
+
+### Q11 Following the identification of the I/O points, what is the Modbus address of the Emergency Stop coil on the PLC?
+
+- Following each step from previous answer, we can find out Modbus address or location of emergency stop coil `%0X0.0` ![Q11](/static/images/SolarDisruption/Q11.png)
+
+### Q12 The attacker seems to have sent multiple Modbus requests using the "Write Single Coil" command, specifically targeting the emergency stop coils. This repeated activation of the emergency stop likely caused our system's downtime. Based on the information provided, can you calculate the total duration of the downtime in seconds (rounded) caused by the attacker?
+
+- I previously started searching for a packet which contained request of command `Write Single Coil`. I was able to find modbus function code of the request which is 5. I start by using the query `modbus.func_code == 5`. Start by noting down the time since reference of first frame because we need to calculate the total duration of the downtime. Which could only be possible by substracting the first value from the last value. ![Q12](/static/images/SolarDisruption/Q12.png)
+- Also take a note of timing of the last frame containing `Write Single Coil` cmd ![Q12-1](/static/images/SolarDisruption/Q12-1.png)
+- Question ask for the total downtime and remember to not forget about rounding off the final downtime value of `294.41` to `294` when submitting this flag.
+
+> If you've made this far, thank you for sticking by and congrats on completing this lab!
