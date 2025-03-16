@@ -1,13 +1,13 @@
 {
+  "domain": 1,
   "cyberdefenders": 6,
   "walkthroughs": 6,
-  "wireshark": 3,
-  "network-traffic-analysis": 3,
-  "threat-intel": 1,
   "endpoint-forensics": 1,
   "timeline-explorer": 1,
   "evtxcmd": 1,
+  "wireshark": 3,
+  "network-traffic-analysis": 3,
+  "threat-intel": 1,
   "splunk": 1,
-  "threat-hunting": 1,
-  "domain": 1
+  "threat-hunting": 1
 }
