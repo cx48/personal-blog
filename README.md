@@ -9,7 +9,7 @@ cd personal-blog
 npm install
 npm run dev
 ```
-After setting up your dev environment using the command mentioned above, you can access this website locally by going to`localhost:3000` inside your browser. To exit use `ctrl+c` inside terminal
+After setting up your dev environment using the command mentioned above, you can access this website locally by going to`localhost:3000` inside your browser. To exit use `ctrl+c`
 
 ### Contributions
 
