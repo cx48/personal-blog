@@ -27,14 +27,14 @@ index=goldenspray AND event.action=logon AND event.outcome=failure
 | top limit=20 "winlog.event_data.IpAddress"
 ```
 
-- With the most failed login attempts we can clearly see that `77.91.X.X` is a public IP address. More than 16 failed login attempts were from this IP address alone. Another things to remember is type of the IP address used. Let's dive a bit deeper and check the timing for each failed login. ![Q1](/static/images/GoldenSpray/Q1.png)
+- With the most failed login attempts we can clearly see that `77.91.X.X` is a public IP address. More than 16 failed login attempts were from this IP address alone. Remember the type of the IP address used in this case, let's dive a bit deeper and check the timing for each failed login. ![Q1](/static/images/GoldenSpray/Q1.png)
 
 ```
 index=goldenspray AND event.action=logon AND event.outcome=failure "winlog.event_data.IpAddress"="77.91.78.115"
 | table _time, event.outcome, winlog.event_data.IPAddress
 ```
 
-- We know that `192.168.X.X` is a Class C Private IP address and `127.0.0.1` is a loopback address. Both of them are being used by the server and are publicly non routable. Coming to the public IP address `77.91.78.115` We can clearly see that each failed login attempt was within a 30 minute timeframe. This is a sign of brute force attack ![Q1-2](/static/images/GoldenSpray/Q1-2.png)
+- We know that `192.168.X.X` is a Class C Private IP address and `127.0.0.1` is a loopback address. Both of them are being used by the server and are publicly non routable. Coming to the public IP address `77.91.78.115` we can clearly see that each failed login attempt was within a 30 minute timeframe. This is a clear sign of brute force attack ![Q1-2](/static/images/GoldenSpray/Q1-2.png)
 
 ### Q2 What country is the attack originating from?
 
