@@ -8,6 +8,5 @@
   "network-traffic-analysis": 3,
   "threat-intel": 1,
   "splunk": 1,
-  "threat-hunting": 1,
-  "domain": 1
+  "threat-hunting": 1
 }
