@@ -1,0 +1,177 @@
+---
+title: MinerHunt Lab Walkthrough
+date: 2025-03-18
+tags: ['cyberdefenders', 'walkthroughs', 'endpoint-forensics', 'timeline-explorer', 'evtxcmd']
+draft: false
+summary: Complete walkthrough of CyberDefenders Minerhunt Lab using EZ Tools
+images: ['']
+layout: PostSimple
+---
+
+![background](/static/images/MinerHunt/background.png)
+
+This is a **medium-level** **endpoint forensics** lab by [CyberDefenders](https://cyberdefenders.org/blueteam-ctf-challenges/minerhunt/). You can complete the analysis using **Eric Zimmerman** tools. Start by reading the scenario in the image above, then proceed to capture the flags.
+
+<TOCInline toc={props.toc} asDisclosure />
+
+I usually explain each step of the walkthrough in detail, but this one primarily contains flags and screenshots showing how I obtained each flag. You can refer to [BlackHill Information Security](https://www.blackhillsinfosec.com/getting-started-with-sysmon/) to learn more about Sysmon and important event IDs. Aside from Sysmon knowledge, EZ tools like EvtxCmd and TimelineExplorer are all you’ll need to complete this lab. If you're unsure how to parse event log files, check out my previous blog on this page, or feel free to do your own research.
+
+## Initial Access
+
+### Q1 Which MITRE ATT&CK ID corresponds to the initial access technique used by the attacker, and which account was targeted?
+
+![Q1](/static/images/MinerHunt/Q1.png)
+
+![Q-11](/static/images/MinerHunt/Q1-1.png)
+
+```
+T1110,sa
+```
+
+### Q2 When did the attacker gain initial access to the SQL Server with the compromised account?
+
+![Q2](/static/images/MinerHunt/Q2.png)
+
+```
+2025-03-09 11:32
+```
+
+### Q3 What was the source IP address used by the attacker when attempting to access the SQL Server?
+
+![Q3](/static/images/MinerHunt/Q3.png)
+
+```
+3.79.210.175
+```
+
+## Execution
+
+### Q4 What is the full command used to extract the file downloaded from the attacker's machine?
+
+![Q4](/static/images/MinerHunt/Q4.png)
+
+```
+C:\Users\Public\xx.exe  x C:\Users\Public\XeX.7z -oC:\Users\Public -y
+```
+
+### Q5 What is the name of the shell exploited by the attacker during the incident, and which MITRE ATT&CK technique identifier is associated with its misuse?
+
+![Q5](/static/images/MinerHunt/Q5.png)
+
+![Q5-1](/static/images/MinerHunt/Q5-1.png)
+
+```
+xp_cmdshell,T1059.003
+```
+
+### Q6 What is the Process ID (PID) used by the attacker to execute commands, and what is its full associated command-line?
+
+> Note that this process will serve as the parent process for all commands executed by the attacker through the utilized shell.
+
+![Q6](/static/images/MinerHunt/Q6.png)
+
+```
+6868,"C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Binn\sqlservr.exe" -sMSSQLSERVER
+```
+
+### Q7 At what precise time did the attacker initiate modifications to the shell configuration utilized during the attack?
+
+![Q7](/static/images/MinerHunt/Q7.png)
+
+```
+2025-03-09 11:40
+```
+
+## Defense Evasion
+
+### Q8 The attacker attempts to evade detection using an ineffective method, but analyzing their attack sequence and skill level is crucial. Which antivirus vendor was the **first** to be targeted by the attacker?
+
+![Q8](/static/images/MinerHunt/Q8.png)
+
+![Q8-1](/static/images/MinerHunt/Q8-1.png)
+
+```
+Kaspersky
+```
+
+## Persistence
+
+### Q9 What is the full path of the **batch file** created by the attacker, which contains multiple commands essential to their attack, such as user account creation, privilege escalation, and system configuration modifications?
+
+![Q9](/static/images/MinerHunt/Q9.png)
+
+```
+C:\Users\Public\N1F10.bat
+```
+
+### Q10 Which account did the attacker use for persistence, and in which registry path did they attempt to hide this account from the Windows login screen?
+
+![Q10](/static/images/MinerHunt/Q10.png)
+
+```
+Admin_env$,HKLM\SOFTWARE\Microsoft\WindowsNT\CurrentVersion\Winlogon\SpecialAccounts\Userlist
+```
+
+### Q11 Understanding how the attacker established **WMI-based persistence** is crucial for detecting and mitigating long-term unauthorized access. What is the **BMof file** used to create the WMI persistence, what is the name of the **WMI Consumer event** registered by the attacker, and what is the full path of the file executed as a result of this WMI setup?
+
+![Q11](/static/images/MinerHunt/Q11.png)
+
+![Q11-1](/static/images/MinerHunt/Q11-1.png)
+
+![Q11-2](/static/images/MinerHunt/Q11-2.png)
+
+```
+NF.bmof,BatConsumer,C:\Users\Public\XeX\mi.bat
+```
+
+### Q12 To maintain persistence, the attacker modified a registry entry by changing the Debugger value. What is the complete registry key path that was altered, and what is the full value assigned to the Debugger entry?
+
+![Q12](/static/images/MinerHunt/Q12.png)
+
+```
+HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\svchost.exe\Debugger,C:\Users\Public\XeX\services.exe
+```
+
+## Credential Access & Privilege Escalation
+
+### Q13 What registry command did the attacker execute to alter Windows security settings and enable the storage of plaintext credentials, facilitating credential theft?
+
+![Q13](/static/images/MinerHunt/Q13.png)
+
+```
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest" /v UseLogonCredential /t REG_DWORD /d 1 /f
+```
+
+### Q14 What is the complete command line executed by the attacker to decode the encoded executable file, which was subsequently used for privilege escalation?
+
+![Q14](/static/images/MinerHunt/Q14.png)
+
+```
+certutil  -decode "C:\\Temp\\FM.txt" "C:\\Temp\\FM.exe"
+```
+
+### Q15 It appears that the attacker used a proof-of-concept hack tool available on GitHub; what is the full link GitHub repository for this tool?
+
+This is the only flag that's pending for me, I'll add it later!
+
+## Command and Control
+
+### Q16 What is the attacker's machine IP used for downloading files during the attack activities?
+
+![Q16](/static/images/MinerHunt/Q16.png)
+
+```
+18.184.228.195
+```
+
+## Cryptomining
+
+### Q17 The attacker’s primary goal appears to be deploying mining software. What is the MD5 hash of the miner, and what is the full name of the cryptocurrency that the miner targets?
+
+![Q17](/static/images/MinerHunt/Q17.png)
+
+![Q17-1](/static/images/MinerHunt/Q17-1.png)
+
+```
+F6D520AE125F03056C4646C508218D16,XMR
+```
