@@ -1,0 +1,97 @@
+---
+title: DarkCrystal Lab Walkthrough
+date: 2025-03-25
+tags: ['cyberdefenders', 'walkthroughs', 'endpoint-forensics', 'timeline-explorer', 'evtxcmd']
+draft: false
+summary: Step-by-step walkthrough of CyberDefenders DarkCrystal Lab using EZ Tools and MemProcFS
+images: ['']
+layout: PostSimple
+---
+
+![background](/static/images/DarkCrystal/background.png)
+
+This is a **medium** level **endpoint forensic** lab by [CyberDefenders](https://cyberdefenders.org/blueteam-ctf-challenges/darkcrystal/). You can complete your analysis using either **MemProcFS**/**Volatility 3** and **Eric Zimmerman** Tools. Start by reading the scenario in the above image and then proceed to capture flags.
+
+<TOCInline toc={props.toc} asDisclosure />
+
+### Before getting started
+
+I've completed this entire lab using **MemProcFS** instead of **Volatility 3**. Rather than using each Volatility plugin one by one, I prefer mounting the entire memory dump image as a drive and then analyze all the extracted forensic artifacts.
+
+For parsing event log (`.evtx`) files, we can use **EvtxECmd** from Eric Zimmerman's tools. Also, don't forget to use **TE (Timeline Explorer)** for analyzing the parsed `.csv` log file.
+
+You can check the steps below on how to mount the memory dump image, parse log files, and analyze them using TE. These steps will only help us save up time during our analysis.
+
+#### Mount, Parse & Analyze
+
+- Mount the memory dump using MemProcFS:
+
+  ```powershell
+  .\memprocfs.exe -device "C:\Users\Administrator\Desktop\Start Here\Artifacts\memory.dmp" -forensic 2
+  ```
+
+  ![before-getting-started](/static/images/DarkCrystal/before-getting-started.png)
+
+- Let's also parse event log files, as it will help us save time later. Navigate to the following directory before executing the command to parse event log files:
+  ```powershell
+  cd "C:\Users\Administrator\Desktop\Start Here\Tools\ZimmermanTools\net6\EvtxeCmd"
+  ```
+- Execute the following command to parse the event logs (remember to create the `out` folder under `Artifacts` before executing this command):
+  ```powershell
+  .\EvtxECmd.exe -d "C:\Users\Administrator\Desktop\Start Here\Artifacts\Logs" --csv "C:\Users\Administrator\Desktop\Start Here\Artifacts\out"
+  ```
+  ![before-getting-started-1](/static/images/DarkCrystal/before-getting-started-1.png)
+- Once all the files are parsed you'll see the final output similar to screenshot below ![before-getting-started-2](/static/images/DarkCrystal/before-getting-started-2.png)
+- Now go ahead and open the generated CSV file (In `out` folder) using **Timeline Explorer** for easier analysis.
+
+### Q1: Malware frequently disguises itself by using names similar to legitimate executables to avoid detection. What is the filename of the malicious executable that serves as the origin and initiates the chain of malicious activities?
+
+- Filter for **Event ID 4688** (`A new process has been created`). Refer to [Microsoft's documentation](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/auditing/event-4688) for more details on this event ID.
+- Identify suspicious executable names. In this case, `TrustedInstaller.exe` is executed by `services.exe`, which is unusual and suggests an attempt to masquerade as a legitimate Windows process. ![Q1-](/static/images/DarkCrystal/Q1-.png)
+- Further analysis reveals that `TrustedInstaller.exe` was executed many times, confirming it as the malicious process initiating the attack chain. ![Q1-1](/static/images/DarkCrystal/Q1-1.png)
+
+### Q2: What is the name of the first file created by the malicious executable identified in the previous question?
+
+- Load additional logs by dragging and dropping the `evtx` log folder from the `misc` directory under the mounted `M:\` drive. Then, parse all files and open the generated `.csv` file in **Timeline Explorer**.![Q2](/static/images/DarkCrystal/Q2.png)
+- Filter by the malicious process (`services.exe`) and **Event ID 4688**. The first file created by `services.exe` is `1313.exe`, confirming it as the initial dropped file in the infection chain. ![Q2-1](/static/images/DarkCrystal/Q2-1.png)
+
+### Q3: Understanding how malware executes malicious scripts is critical for analyzing its workflow. If the malware leverages `wscript` to execute scripts, what executable file was launched as a result of their execution?
+
+- Search for the process execution of `1313.exe` to understand its behavior. Identify that `1313.exe` creates a new process, `wscript.exe`, a legitimate Windows process often abused by malware for script execution. ![Q3](/static/images/DarkCrystal/Q3.png)
+- Follow the process chain and observe `wscript.exe` launching `cmd.exe` which then spawns `providerBrowser.exe`, which is highly suspicious and should be the flag for this question.![Q3](/static/images/DarkCrystal/Q3-1.png)
+
+### Q4: Malware often exploits legitimate system processes, known as Living Off the Land Binaries (LOLBins), to evade detection. What is the name of the first file executed by the malware using a LOLBin?
+
+- The second process executed by `services.exe` (PID 692) reveals the use of `msiexec.exe` (PID 1392, PPID 692), another example of a LOLBin. Proc file will be under `M:\sys\proc\proc -v.txt` ![Q4-1](/static/images/DarkCrystal/Q4-1.png)
+- Further analysis shows that the malicious process `SandeLLoCHECKER_Installer.msi` is the first file executed by `msiexec.exe` (LOLBin).![Q4-2](/static/images/DarkCrystal/Q4-2.png)
+- Screenshot containing the entire command ![Q4-3](/static/images/DarkCrystal/Q4-3.png)
+
+### Q5: Malware frequently renames system utilities to bypass security defenses. What is the PID of the parent process linked to the legitimate LOLBin mentioned in the previous question?
+
+- If you have answered Q4, you can easily find the PID required for this question (as it was previously mentioned).
+- You can identify `2964` as the PID linked to the malicious process using Volatility 3's pslist plugin. Use the following command:
+  ```powershell
+  python .\vol.py -f "C:\Users\Administrator\Desktop\Start Here\Artifacts\memory.dmp" windows.pslist
+  ```
+  ![Q5](/static/images/DarkCrystal/Q5.png)
+
+### Q6: Remote Access Trojans (RATs) depend on command-and-control (C&C) channels to establish communication with attackers, enabling them to issue commands and carry out malicious operations. Which executable is responsible for facilitating the malware's C&C activities?
+
+- Inside `netstat` file (`M:\sys\net\netstat.txt`), we can see a process named `GoogleDriveFS.exe` (masquerading as a legitimate Google Drive binary to evade detection) is observed establishing a connection to the malicious IP address `77.222.47.117:80`. ![Q6-2](/static/images/DarkCrystal/Q6-2.png)
+- VirusTotal search confirms this IP is linked to DC RAT. ![Q6-3](/static/images/DarkCrystal/Q6-3.png)
+
+### Q7: Identifying the network communication used by malware is crucial for detecting its presence and understanding its command-and-control (C&C) infrastructure. What are the two local ports the malware uses to connect to its C&C servers?
+
+- If you successfully answered Q6, you should have no difficulty identifying the port numbers. They are already mentioned alongside the IP address in the screenshot below. ![Q6-2](/static/images/DarkCrystal/Q6-2.png)
+- The two local ports used for C2 are: `49948, 49949`
+
+### Q8: The malware likely retrieves a script from a remote server to execute commands or exfiltrate data. What is the name of the script retrieved in this case?
+
+- After conducting additional research online and analyzing the provided logs, I found the following IOC: `//77.222.47.117/packetrequestdownloads/0/defaultimage/_/universalProvider/0DownloadsWordpress/8ProtonBigloadlongpoll/privatePublicTrack/dump/Uploads/VideoPipeProcessorDefault.php`
+- The malicious script responsible for receiving commands is `VideoPipeProcessorDefault.php`.
+
+### Q9: Windows Defender initially detected the malware but was later disabled, allowing the malware to run again the next day. What detection name did Windows Defender assign to this malware sample?
+
+- By searching for `Windows Defender` using **Timeline Explorer**, we can find the malware name under `Payload Data1`. It is labeled as `Trojan:Win32/DCRat.MQ!MTB` ![Q9](/static/images/DarkCrystal/Q9.png)
+
+> If you've made this far, thank you for sticking by and congrats on completing this lab
