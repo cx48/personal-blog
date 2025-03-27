@@ -1,18 +1,26 @@
 ---
 title: AWSWatcher Lab Walkthrough
 date: '2025-03-27'
-tags: ['cyberdefenders', 'walkthroughs', 'cloud-forensics', 'AWS']
+tags: ['cyberdefenders', 'walkthroughs', 'cloud-forensics', 'aws']
 draft: false
 summary: Step-by-step walkthrough of CyberDefenders Cloud Forensic Lab AWSWatcher
 images: ['']
 layout: PostSimple
 ---
 
-![AWSWatcher](/static/images/AWSWatcher/background.png)
+![AWSWatcher](/static/images/AWSWatcher/awswatcher.png)
 
 This is a **easy** level **cloud forensics** lab by [CyberDefenders](https://cyberdefenders.org/blueteam-ctf-challenges/awswatcher/). You can complete your analysis using **AWS Management Console**. Start by reading `Before Getting Started` section for more info.
 
 <TOCInline toc={props.toc} asDisclosure />
+
+## Scenario
+
+Compliant Secure Store recently launched its new website—but security misconfigurations left critical gaps. Soon after the launch, an attacker initiated widespread scanning and discovered an upload feature that processed XML data without proper validation. By crafting a specially designed payload, the attacker manipulated the system’s input handling, triggering unintended data exposure.
+
+Using the extracted information from this vulnerability, the attacker authenticated into the system and navigated internal resources. During the exploration, misconfigured storage buckets were discovered, and sensitive records were exfiltrated before the security team could intervene.
+
+Your mission is to analyze the attack flow, identify exploited weaknesses, and implement the necessary security controls to prevent future incidents.
 
 ## Before Getting Started
 
