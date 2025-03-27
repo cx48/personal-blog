@@ -6,7 +6,7 @@ const siteMetadata = {
   description:
     "This page was previously used for my blog, but from now on, it will be dedicated solely to CTFs. All CTF walkthroughs have been written by me. If there is ever a contribution from another author, it will be clearly mentioned at the top. Also, please note that I don’t use any AI tools for auto-correcting or fixing grammar mistakes before publishing. As a result, you may come across typos or errors that need fixing. If you'd like to help, feel free to submit a pull request—your contributions will save me time. Make use of ⌘-k or ctrl-k to use the search bar!",
   language: 'en-us',
-  theme: 'dark', // system, dark or light
+  theme: 'system', // system, dark or light
   siteUrl: 'https://blog.charanpreet.dev',
   siteRepo: 'https://github.com/cx48/personal-blog',
   siteLogo: '/static/images/logo.png',
