@@ -14,7 +14,7 @@
   "dependencies": {
     "@headlessui/react": "1.7.19",
     "@next/bundle-analyzer": "14.2.24",
-    "@tailwindcss/forms": "^0.5.8",
+    "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "autoprefixer": "^10.4.21",
     "contentlayer2": "0.5.0",
