@@ -1,0 +1,151 @@
+---
+title: OpenCTI 101 Lab Walkthrough
+date: '2025-04-14'
+tags: ['cyberdefenders', 'walkthroughs', 'opencti', 'threat-intel', 'mitre-att&ck']
+draft: false
+summary: Walkthrough of CyberDefenders Threat Intelligence Lab OpenCTI 101
+images: ['']
+layout: PostSimple
+---
+
+![background](/static/images/OpenCTI101/background.png)
+
+This is a **easy** level **threat intelligence** lab by [CyberDefenders](https://cyberdefenders.org/blueteam-ctf-challenges/opencti-101/). I usually explain each step of the walkthrough in detail, but this one primarily contains flags and screenshots showing how I obtained each flag.
+
+<TOCInline toc={props.toc} asDisclosure />
+
+## Scenario
+
+As a Threat Intelligence Analyst at SecureShot MDR, you play a key role in uncovering and analyzing emerging cyber threats to strengthen proactive defense. Currently focused on APT29, you leverage OpenCTI to track their evolving tactics, techniques, and procedures—connecting malware artifacts, infrastructure patterns, and past operations. Your intelligence directly informs detection strategies, helping the organization anticipate and mitigate advanced threats with precision.
+
+## APT 29 - Targeting & Tradecraft Overview
+
+### Q1 Understanding which sectors are targeted can help prioritize defenses and threat detection. Which industries have been targeted by APT29?
+
+![Q1](/static/images/OpenCTI101/Q1.png)
+
+---
+
+![Q1-1](/static/images/OpenCTI101/Q1-1.png)
+
+---
+
+![Q1-2](/static/images/OpenCTI101/Q1-2.png)
+
+```
+Military , Technology, Foreign Affairs ,Telecommunications, Government
+```
+
+### Q2 Identifying tools used by the group provides insights into their tactics and evasion methods. What is the name of the Tor plugin mostly used by APT29 to tunnel Tor traffic through  HTTPS connections?
+
+![Q2](/static/images/OpenCTI101/Q2.png)
+
+---
+
+![Q2-1](/static/images/OpenCTI101/Q2-1.png)
+
+```
+meek
+```
+
+### Q3 Understanding major campaigns helps analysts trace how a threat actor’s objectives and tactics have evolved over time. According to OpenCTI intelligence feeds, APT29 has been linked to two significant operations. What are the names of these two key campaigns in APT29’s history?
+
+![Q3](/static/images/OpenCTI101/Q3.png)
+
+```
+SolarWinds Compromise , Operation Ghost
+```
+
+### Q4 Mapping threat actor behavior to the MITRE ATT&CK framework ensures consistent analysis of known techniques. According to OpenCTI data, which MITRE ATT&CK technique IDs are linked to APT29’s most recently observed attack patterns related to data exfiltration tactic?
+
+![Q4](/static/images/OpenCTI101/Q4.png)
+
+```
+T1048 , T1030
+```
+
+### Q5 Domains leveraged in threat campaigns frequently serve as critical Indicators of Compromise (IOCs). The domain **crossfity[.]com** has been associated with activity attributed to APT29. Which adversary emulation tool and malware family are linked to this domain?
+
+![Q5](/static/images/OpenCTI101/Q5.png)
+
+---
+
+![Q5-1](/static/images/OpenCTI101/Q5-1.png)
+
+```
+Cobalt Strike, EnvyScout
+```
+
+### Q6 Given that the report references the domain name IOC **crossfity[.]com**, which other domain was identified as being associated with the same threat campaign?
+
+![Q6](/static/images/OpenCTI101/Q6.png)
+
+```
+techspaceinfo.com
+```
+
+## APT 29 - 2023 Backchannel Diplomacy Campaigns
+
+### Q7 In the April 2023: Old Wine in a New Bottle campaign, APT29 reused a diplomatic-themed lure spoofing the Czechia Embassy, inviting recipients to a wine-tasting event. Which phishing website link was embedded in the document to deliver either an ISO or ZIP archive to the target?
+
+**Note:** The URL format is as mentioned in the report.
+
+![Q7](/static/images/OpenCTI101/Q7.png)
+
+---
+
+![Q7-1](/static/images/OpenCTI101/Q7-1.png)
+
+---
+
+![Q7-2](/static/images/OpenCTI101/Q7-2.png)
+
+```
+https://sylvio[.]com[.]br/form.php
+```
+
+### Q8 Tracking infrastructure used in threat campaigns is critical for detecting ongoing or future malicious activity. In the APT29 campaign from March 2023—known as the Earthquake-Themed Türkiye Campaign—which hostname was utilized?
+
+![Q8](/static/images/OpenCTI101/Q8.png)
+
+```
+www.willyminiatures.com
+```
+
+### Q9 What is the name of the PDF decoy used in APT29’s Earthquake-Themed Türkiye Campaign?
+
+![Q9](/static/images/OpenCTI101/Q9.png)
+
+```
+e-yazi.pdf
+```
+
+### Q10 In the June 2023: Split ROOTSAW Campaign, the attacker deployed a variant of the ROOTSAW dropper specific to that operation. What is the MD5 hash of the ROOTSAW dropper used in this campaign?
+
+![Q10](/static/images/OpenCTI101/Q10.png)
+
+```
+295527e2e38da97167979ade004de880
+```
+
+## APT 29 - 2023 EU Governments Campaign
+
+### Q11 Tracking phishing infrastructure is essential for identifying current and future threat activity. In the campaign, NOBELIUM uses Poland's Ambassador’s Visit to the U.S. to target EU governments that are assisting Ukraine. Which two URL indicators were used by APT29 in a phishing operation involving a weaponized document spoofing an El Salvador-based library website?
+
+![Q11](/static/images/OpenCTI101/Q11.png)
+
+---
+
+![Q11-1](/static/images/OpenCTI101/Q11-1.png)
+
+```
+https://literaturaelsalvador.com/Schedule.html , https://literaturaelsalvador.com/Instructions.html
+```
+
+### Q12 Each of the previously mentioned URLs delivered .iso files containing a .lnk file and a .dll file with matching hashes. What is the command used by the .lnk file?
+
+![Q12](/static/images/OpenCTI101/Q12.png)
+
+```
+C:\Windows\system32\rundll32.exe BugSplatRc64.dll,InitiateDs
+```

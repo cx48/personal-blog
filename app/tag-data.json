@@ -1,20 +1,22 @@
 {
-  "cyberdefenders": 10,
-  "walkthroughs": 11,
+  "domain": 1,
+  "cyberdefenders": 11,
+  "walkthroughs": 12,
   "cloud-forensics": 2,
   "aws": 1,
-  "gcp": 1,
-  "jq": 1,
   "endpoint-forensics": 3,
   "timeline-explorer": 3,
   "evtxcmd": 3,
+  "gcp": 1,
+  "jq": 1,
   "kill-chain": 1,
+  "opencti": 1,
+  "threat-intel": 2,
+  "mitre-attck": 1,
   "wireshark": 4,
   "network-traffic-analysis": 3,
-  "threat-intel": 1,
   "splunk": 1,
   "threat-hunting": 1,
   "hackthebox": 1,
   "network-forensics": 1
-  "domain": 1
 }
